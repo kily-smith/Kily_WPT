@@ -20,6 +20,7 @@
 #include "main.h"
 #include "adc.h"
 #include "fdcan.h"
+#include "hrtim.h"
 #include "i2c.h"
 #include "spi.h"
 #include "tim.h"
@@ -63,7 +64,12 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+//void start_module_A(void)
+//{
 
+
+
+//}
 /* USER CODE END 0 */
 
 /**
@@ -74,7 +80,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+//start_module_A();
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -96,18 +102,27 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
-  MX_ADC1_Init();
+  MX_ADC1_Init(); 
   MX_FDCAN3_Init();
+  MX_HRTIM1_Init();
   MX_USART1_UART_Init();
   MX_TIM3_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+		HAL_HRTIM_WaveformCounterStart(&hhrtim1, HRTIM_TIMERID_MASTER | HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B);	//务必用|链接，实现同步
+ 
 	
-	HAL_Delay (100);
-	ST7735_Init();
-	HAL_GPIO_WritePin (SPI1_BL_GPIO_Port ,SPI1_BL_Pin ,GPIO_PIN_SET );
-	ST7735_FillScreen(ST7735_BLACK);
+	 HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TA1 );
+	 HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TA2 );
 	
+	
+	 HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TB1 );
+	 HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TB2 );
+//	HAL_Delay (100);
+//	ST7735_Init();
+//	HAL_GPIO_WritePin (SPI1_BL_GPIO_Port ,SPI1_BL_Pin ,GPIO_PIN_SET );
+//	ST7735_FillScreen(ST7735_BLACK);
+//	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -117,70 +132,70 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		
-		float    Current;
-		float   Voltage;
-		float  Pow;	
-		
-	//INA226 初始化及CAL值适配
-	/*
-	* 设置转换时间8.244ms,求平均值次数16，设置模式为分流和总线连续模式
-	* 总数据转换时间 = 8.244*16 = 131.9ms 
-	*/
-    INA226_SetConfig(0x45FF);
-	/*
-	* 分流电阻最大电压 :电阻0.01R，分辨率0.2mA
-	* 公式1
-	* Current_LSB = 预= 32768 * 0.0000025V = 0.08192V
-	* 设置分流电压转电流转换参数期最大电流 / 2^15
-	* Current_LSB = 5 / 32768 = 0.00152A ,选0.002ma
-	* 公式2
-	* CAL = 0.00512/(Current_LSB*R)
-	* CAL = 0.00512/(0.0002*0.1)=256 = 0x0100			100m对应0xa00  1对应0xa00
-	*/
-    INA226_SetCalibrationReg(0x07D0);
-		
-	//数据获取及转换
-	Voltage = INA226_GetBusV();
-	Current = INA226_GetCurrent();
-	Pow = INA226_GetPower();
-	char str_voltage[10]; // 分配足够的空间存储字符串
-  sprintf(str_voltage, "%.6f", Voltage ); // 将浮点数格式化为整数形式 
-	char str_current[10]; // 分配足够的空间存储字符串       `
-  sprintf(str_current, "%.6f", Current ); // 将浮点数格式化为整数形式 
-	char str_pow[10]; // 分配足够的空间存储字符串
-  sprintf(str_pow, "%.6f", Pow ); // 将浮点数格式化为整数形式 
-//	//串口打印
-//	printf("Current is %fA ",Current);
-//	printf("Voltage is %fV ",Voltage);
-//	printf("Pow is %fW\n",Pow);
-	//屏幕显示
-	ST7735_DrawString(0, 0, "[WPT-TX]", ST7735_YELLOW, ST7735_BLACK, &Font_11x18);
-	ST7735_DrawString(100, 0, "CAN:NOT", ST7735_RED, ST7735_BLACK, &Font_7x10);
-	ST7735_DrawString(100, 10, "UART:NOT", ST7735_RED, ST7735_BLACK, &Font_7x10);
-	ST7735_DrawString(0, 20, str_voltage, ST7735_GREEN, ST7735_BLACK, &Font_11x18);
-	ST7735_DrawString(0, 40, str_current, ST7735_BLUE, ST7735_BLACK, &Font_11x18);
-	ST7735_DrawString(0, 60, str_pow, ST7735_YELLOW, ST7735_BLACK, &Font_11x18);
-	ST7735_DrawString(100, 20, "POWER:", ST7735_PUPER, ST7735_BLACK, &Font_7x10);
-	ST7735_DrawString(100, 30, "2000J", ST7735_WHITE, ST7735_BLACK, &Font_7x10);
-	ST7735_DrawString(100, 40, "TIME", ST7735_CYAN, ST7735_BLACK, &Font_7x10);
-	ST7735_DrawString(100, 50, "0:00:00", ST7735_WHITE, ST7735_BLACK, &Font_7x10);
-	ST7735_DrawString(100, 60, "29DU", ST7735_BLUE, ST7735_BLACK, &Font_7x10);
-	ST7735_DrawString(100, 70, "------", ST7735_YELLOW, ST7735_BLACK, &Font_7x10);
-	
-	//指示灯显示
-	HAL_GPIO_WritePin (RGB_G_GPIO_Port ,RGB_G_Pin ,GPIO_PIN_RESET);
-	HAL_Delay (100);
-	HAL_GPIO_WritePin (RGB_G_GPIO_Port ,RGB_G_Pin ,GPIO_PIN_SET);		
-	HAL_Delay (100);
-	HAL_GPIO_WritePin (RGB_B_GPIO_Port ,RGB_B_Pin ,GPIO_PIN_RESET);
-	HAL_Delay (100);
-	HAL_GPIO_WritePin (RGB_B_GPIO_Port ,RGB_B_Pin ,GPIO_PIN_SET);		
-	HAL_Delay (100);
-	HAL_GPIO_WritePin (RGB_R_GPIO_Port ,RGB_R_Pin ,GPIO_PIN_RESET);
-	HAL_Delay (100);
-	HAL_GPIO_WritePin (RGB_R_GPIO_Port ,RGB_R_Pin ,GPIO_PIN_SET);		
-	HAL_Delay (100);
+//		
+//		float    Current;
+//		float   Voltage;
+//		float  Pow;	
+//		
+//	//INA226 初始化及CAL值适配
+//	/*
+//	* 设置转换时间8.244ms,求平均值次数16，设置模式为分流和总线连续模式
+//	* 总数据转换时间 = 8.244*16 = 131.9ms 
+//	*/
+//    INA226_SetConfig(0x45FF);
+//	/*
+//	* 分流电阻最大电压 :电阻0.01R，分辨率0.2mA
+//	* 公式1
+//	* Current_LSB = 预= 32768 * 0.0000025V = 0.08192V
+//	* 设置分流电压转电流转换参数期最大电流 / 2^15
+//	* Current_LSB = 5 / 32768 = 0.00152A ,选0.002ma
+//	* 公式2
+//	* CAL = 0.00512/(Current_LSB*R)
+//	* CAL = 0.00512/(0.0002*0.1)=256 = 0x0100			100m对应0xa00  1对应0xa00
+//	*/
+//    INA226_SetCalibrationReg(0x07D0);
+//		
+//	//数据获取及转换
+//	Voltage = INA226_GetBusV();
+//	Current = INA226_GetCurrent();
+//	Pow = INA226_GetPower();
+//	char str_voltage[10]; // 分配足够的空间存储字符串
+//  sprintf(str_voltage, "%.6f", Voltage ); // 将浮点数格式化为整数形式 
+//	char str_current[10]; // 分配足够的空间存储字符串       `
+//  sprintf(str_current, "%.6f", Current ); // 将浮点数格式化为整数形式 
+//	char str_pow[10]; // 分配足够的空间存储字符串
+//  sprintf(str_pow, "%.6f", Pow ); // 将浮点数格式化为整数形式 
+////	//串口打印
+////	printf("Current is %fA ",Current);
+////	printf("Voltage is %fV ",Voltage);
+////	printf("Pow is %fW\n",Pow);
+//	//屏幕显示
+//	ST7735_DrawString(0, 0, "[WPT-TX]", ST7735_YELLOW, ST7735_BLACK, &Font_11x18);
+//	ST7735_DrawString(100, 0, "CAN:NOT", ST7735_RED, ST7735_BLACK, &Font_7x10);
+//	ST7735_DrawString(100, 10, "UART:NOT", ST7735_RED, ST7735_BLACK, &Font_7x10);
+//	ST7735_DrawString(0, 20, str_voltage, ST7735_GREEN, ST7735_BLACK, &Font_11x18);
+//	ST7735_DrawString(0, 40, str_current, ST7735_BLUE, ST7735_BLACK, &Font_11x18);
+//	ST7735_DrawString(0, 60, str_pow, ST7735_YELLOW, ST7735_BLACK, &Font_11x18);
+//	ST7735_DrawString(100, 20, "POWER:", ST7735_PUPER, ST7735_BLACK, &Font_7x10);
+//	ST7735_DrawString(100, 30, "2000J", ST7735_WHITE, ST7735_BLACK, &Font_7x10);
+//	ST7735_DrawString(100, 40, "TIME", ST7735_CYAN, ST7735_BLACK, &Font_7x10);
+//	ST7735_DrawString(100, 50, "0:00:00", ST7735_WHITE, ST7735_BLACK, &Font_7x10);
+//	ST7735_DrawString(100, 60, "29DU", ST7735_BLUE, ST7735_BLACK, &Font_7x10);
+//	ST7735_DrawString(100, 70, "------", ST7735_YELLOW, ST7735_BLACK, &Font_7x10);
+//	
+//	//指示灯显示
+//	HAL_GPIO_WritePin (RGB_G_GPIO_Port ,RGB_G_Pin ,GPIO_PIN_RESET);
+//	HAL_Delay (100);
+//	HAL_GPIO_WritePin (RGB_G_GPIO_Port ,RGB_G_Pin ,GPIO_PIN_SET);		
+//	HAL_Delay (100);
+//	HAL_GPIO_WritePin (RGB_B_GPIO_Port ,RGB_B_Pin ,GPIO_PIN_RESET);
+//	HAL_Delay (100);
+//	HAL_GPIO_WritePin (RGB_B_GPIO_Port ,RGB_B_Pin ,GPIO_PIN_SET);		
+//	HAL_Delay (100);
+//	HAL_GPIO_WritePin (RGB_R_GPIO_Port ,RGB_R_Pin ,GPIO_PIN_RESET);
+//	HAL_Delay (100);
+//	HAL_GPIO_WritePin (RGB_R_GPIO_Port ,RGB_R_Pin ,GPIO_PIN_SET);		
+//	HAL_Delay (100);
 		
   }
   /* USER CODE END 3 */
