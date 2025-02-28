@@ -294,5 +294,5 @@ void ST7735_DrawImage(uint16_t x, uint16_t y, uint16_t width, uint16_t height, c
 {
   ST7735_SetAddressWindow(x, y, x + width - 1, y + height - 1);
   ST7735_WriteCommand(ST7735_RAMWR);
-  ST7735_WriteData((uint8_t *)image, sizeof(uint16_t) * width * height);
+  ST7735_WriteData((uint8_t *)image, sizeof(uint16_t) * width * height);	
 }

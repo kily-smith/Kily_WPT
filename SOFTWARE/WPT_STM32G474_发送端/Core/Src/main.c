@@ -102,7 +102,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
-  MX_ADC1_Init(); 
+  MX_ADC1_Init();
   MX_FDCAN3_Init();
   MX_HRTIM1_Init();
   MX_USART1_UART_Init();
@@ -184,18 +184,23 @@ int main(void)
 //	ST7735_DrawString(100, 70, "------", ST7735_YELLOW, ST7735_BLACK, &Font_7x10);
 //	
 //	//÷∏ æµ∆œ‘ æ
-//	HAL_GPIO_WritePin (RGB_G_GPIO_Port ,RGB_G_Pin ,GPIO_PIN_RESET);
-//	HAL_Delay (100);
-//	HAL_GPIO_WritePin (RGB_G_GPIO_Port ,RGB_G_Pin ,GPIO_PIN_SET);		
-//	HAL_Delay (100);
-//	HAL_GPIO_WritePin (RGB_B_GPIO_Port ,RGB_B_Pin ,GPIO_PIN_RESET);
-//	HAL_Delay (100);
-//	HAL_GPIO_WritePin (RGB_B_GPIO_Port ,RGB_B_Pin ,GPIO_PIN_SET);		
-//	HAL_Delay (100);
-//	HAL_GPIO_WritePin (RGB_R_GPIO_Port ,RGB_R_Pin ,GPIO_PIN_RESET);
-//	HAL_Delay (100);
-//	HAL_GPIO_WritePin (RGB_R_GPIO_Port ,RGB_R_Pin ,GPIO_PIN_SET);		
-//	HAL_Delay (100);
+	HAL_GPIO_WritePin (LED_GPIO_Port ,LED_Pin ,GPIO_PIN_RESET);
+	HAL_Delay (100);
+	HAL_GPIO_WritePin (LED_GPIO_Port ,LED_Pin ,GPIO_PIN_SET);		
+	HAL_Delay (100);
+
+	HAL_GPIO_WritePin (RGB_G_GPIO_Port ,RGB_G_Pin ,GPIO_PIN_RESET);
+	HAL_Delay (100);
+	HAL_GPIO_WritePin (RGB_G_GPIO_Port ,RGB_G_Pin ,GPIO_PIN_SET);		
+	HAL_Delay (100);
+	HAL_GPIO_WritePin (RGB_B_GPIO_Port ,RGB_B_Pin ,GPIO_PIN_RESET);
+	HAL_Delay (100);
+	HAL_GPIO_WritePin (RGB_B_GPIO_Port ,RGB_B_Pin ,GPIO_PIN_SET);		
+	HAL_Delay (100);
+	HAL_GPIO_WritePin (RGB_R_GPIO_Port ,RGB_R_Pin ,GPIO_PIN_RESET);
+	HAL_Delay (100);
+	HAL_GPIO_WritePin (RGB_R_GPIO_Port ,RGB_R_Pin ,GPIO_PIN_SET);		
+	HAL_Delay (100);
 		
   }
   /* USER CODE END 3 */
